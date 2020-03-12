@@ -12,6 +12,7 @@ public class CameraFollow : MonoBehaviour
     Vector3 velocity;
     Vector3 resultVector;
     Vector3 centerPoint;
+    [SerializeField] Joystick rightJoystick;
 
     private void Start()
     {
@@ -22,14 +23,24 @@ public class CameraFollow : MonoBehaviour
 
     private void Update()
     {
-        mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePos = (targets[0].position + mousePos) / 2;
 
-        centerPoint = GetCenterPoint();
-        resultVector.x = centerPoint.x;
-        resultVector.y = centerPoint.y;
+        if (Application.isMobilePlatform)
+        {
+            resultVector = rightJoystick.Direction * 2;
+            resultVector.z = transform.position.z;
+            transform.position = Vector3.SmoothDamp(transform.position, targets[0].position + resultVector, ref velocity, smoothTime);
+        }
+        else
+        {
+            mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePos = (targets[0].position + mousePos) / 2;
 
-        transform.position = Vector3.SmoothDamp(transform.position, resultVector + (Vector3)offset, ref velocity, smoothTime);
+            centerPoint = GetCenterPoint();
+            resultVector.x = centerPoint.x;
+            resultVector.y = centerPoint.y;
+
+            transform.position = Vector3.SmoothDamp(transform.position, resultVector + (Vector3)offset, ref velocity, smoothTime);
+        }
         
     }
 

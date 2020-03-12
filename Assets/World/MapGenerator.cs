@@ -2,8 +2,6 @@
 using System.Collections;
 using System;
 using UnityEngine.Tilemaps;
-using UnityEngine.U2D;
-using Pathfinding;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -26,26 +24,17 @@ public class MapGenerator : MonoBehaviour
 
     int[,] map;
 
-    bool firstFrame = true;
-
     void Awake()
     {
         GenerateMap();
-        StartCoroutine("ScanPaths");
     }
 
     void Update()
     {
-        if (firstFrame)
-        {
-            AstarPath.active.Scan();
-            firstFrame = false;
-        }
 
         if (Input.GetKeyDown(KeyCode.Insert))
         {
             GenerateMap();
-            AstarPath.active.Scan();
         }
     }
 
@@ -216,13 +205,4 @@ public class MapGenerator : MonoBehaviour
     //        }
     //    }
     //}
-
-    IEnumerator ScanPaths()
-    {
-        while (true)
-        {
-            AstarPath.active.Scan();
-            yield return new WaitForSeconds(3);
-        }
-    }
 }

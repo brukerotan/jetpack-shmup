@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class Enemy : Character
 {
+    Rigidbody2D rb;
     [SerializeField, Range(-3, 3)] float knockbackMultiplier = 1f;
     SpriteRenderer sprRenderer;
+    float speed = 0.25f;
+    public Vector2 direction = Vector2.zero;
     
     protected override void Start()
     {
         base.Start();
-        sprRenderer = GetComponentInChildren<SpriteRenderer>();      
+        rb = GetComponent<Rigidbody2D>();
+        sprRenderer = GetComponentInChildren<SpriteRenderer>();
+        direction.x = Random.Range(-1f, 1f);
+        direction.y = Mathf.Sign(Random.Range(-1f, 1f));
     }
 
     void Update()
@@ -18,11 +24,25 @@ public class Enemy : Character
         if (!isDead)
         {
             sprRenderer.color = Vector4.MoveTowards(sprRenderer.color, Color.white, 15.0f * Time.deltaTime);
+            transform.Translate((10 * Time.deltaTime) * direction);
         }
         else
         {
             sprRenderer.color = Vector4.MoveTowards(sprRenderer.color, new Color(0.25f, 0.25f, 0.25f), 15.0f * Time.deltaTime);
         }
+    }
+
+    void FixedUpdate()
+    {
+        if (!isDead)
+        {
+            rb.MovePosition(rb.position + (direction * speed) * Time.fixedDeltaTime);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        direction = Vector2.Reflect(direction, collision.GetContact(0).normal);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -52,13 +72,11 @@ public class Enemy : Character
         //    AI.canMove = false;
         //    AI.canSearch = false;
         //}
-        if (TryGetComponent(out Rigidbody2D rb))
-        {
-            rb.gravityScale = 2f;
-            Vector2 rand = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
-            rb.AddForceAtPosition(rand * 5, rb.position + rand);
-        }
-        
+
+        rb.gravityScale = 2f;
+        Vector2 rand = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
+        rb.AddForceAtPosition(rand * 5, rb.position + rand);
+
         if (GetComponentsInChildren<ParticleSystem>() != null)
         {
             foreach (ParticleSystem particle in GetComponentsInChildren<ParticleSystem>())

@@ -16,6 +16,10 @@ public class PlayerController : MonoBehaviour
     Vector2 movementInput;
     Vector2 aimDirection;
 
+
+    [SerializeField] Joystick leftJoystick;
+    [SerializeField] Joystick rightJoystick;
+
     [Header("Sprites & Animation")]
     [SerializeField] Transform handPivot;
     [SerializeField] SpriteRenderer leftHand;
@@ -53,34 +57,41 @@ public class PlayerController : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         playerSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        isWeaponTwoHanded = true;
     }
 
     void Update()
     {
-        movementInput.x = Input.GetAxis("Horizontal");
-        movementInput.y = Input.GetAxisRaw("Vertical");
-
-
-        if (gamepadAim)
+        if (Application.isMobilePlatform)
         {
-            aimDirection = new Vector2(movementInput.x, movementInput.y).normalized;
+            
+            movementInput.x = leftJoystick.Horizontal;
+            movementInput.y = leftJoystick.Vertical;
+            aimDirection = rightJoystick.Direction;
+            isJetpackOn = leftJoystick.Vertical > 0.5f ? true : false;
+
+            if (rightJoystick.Direction != Vector2.zero && firerateTimer >= currentWeapon.fireRate)
+            {
+                Fire();
+                firerateTimer = 0;
+            }
         }
         else
         {
+            movementInput.x = Input.GetAxis("Horizontal");
+            movementInput.y = Input.GetAxisRaw("Vertical");
             aimDirection = GetMouseDirection();
+            isJetpackOn = Input.GetButton("Jump") || movementInput.y == 0.5f ? true : false;
+            if (Input.GetButton("Fire1") && firerateTimer >= currentWeapon.fireRate)
+            {
+                Fire();
+                firerateTimer = 0;
+            }
         }
-
-        isJetpackOn = Input.GetButton("Jump") || movementInput.y == 1.0f ? true : false;
 
         AimHands(aimDirection);
-
-        firerateTimer += Time.deltaTime;
-        if (Input.GetButton("Fire1") && firerateTimer >= currentWeapon.fireRate)
-        {
-            Fire();
-            firerateTimer = 0;
-        }
-
+        firerateTimer += Time.deltaTime;           
         FlipSprites();
         AnimateSprite();
         ControlParticles();
@@ -97,20 +108,20 @@ public class PlayerController : MonoBehaviour
             jetpackAudioSource.pitch = Mathf.Clamp(rb.velocity.y * Random.Range(0.1f, 0.3f), 0.5f, 1.2f);
         }
 
-        if (Input.GetKeyDown(KeyCode.F1))
-        {
-            isDead = !isDead;
-        }
-
-        if (Input.GetKeyDown(KeyCode.F2))
-        {
-            isWeaponTwoHanded = !isWeaponTwoHanded;
-        }
-
-        if (Input.GetKeyDown(KeyCode.F3))
-        {
-            gamepadAim = !gamepadAim;
-        }
+        //if (Input.GetKeyDown(KeyCode.F1))
+        //{
+        //    isDead = !isDead;
+        //}
+        //
+        //if (Input.GetKeyDown(KeyCode.F2))
+        //{
+        //    isWeaponTwoHanded = !isWeaponTwoHanded;
+        //}
+        //
+        //if (Input.GetKeyDown(KeyCode.F3))
+        //{
+        //    gamepadAim = !gamepadAim;
+        //}
     }
   
     void FixedUpdate()
